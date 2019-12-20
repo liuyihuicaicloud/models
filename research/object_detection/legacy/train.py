@@ -126,7 +126,8 @@ def main(_):
   env = json.loads(os.environ.get('TF_CONFIG', '{}'))
   cluster_data = env.get('cluster', None)
   cluster = tf.train.ClusterSpec(cluster_data) if cluster_data else None
-  task_data = env.get('task', None) or {'type': 'master', 'index': 0}
+  # task_data = env.get('task', None) or {'type': 'master', 'index': 0}
+  task_data = env.get('task', None) or {'type': 'worker', 'index': 0}
   task_info = type('TaskSpec', (object,), task_data)
 
   # Parameters for a single worker.
@@ -139,7 +140,8 @@ def main(_):
 
   if cluster_data and 'worker' in cluster_data:
     # Number of total worker replicas include "worker"s and the "master".
-    worker_replicas = len(cluster_data['worker']) + 1
+    # worker_replicas = len(cluster_data['worker']) + 1
+    worker_replicas = len(cluster_data['worker'])
   if cluster_data and 'ps' in cluster_data:
     ps_tasks = len(cluster_data['ps'])
 
@@ -157,7 +159,8 @@ def main(_):
 
     worker_job_name = '%s/task:%d' % (task_info.type, task_info.index)
     task = task_info.index
-    is_chief = (task_info.type == 'master')
+    # is_chief = (task_info.type == 'master')
+    is_chief = (task_info.type == 'worker') and (task_info.index == 0)
     master = server.target
 
   graph_rewriter_fn = None
